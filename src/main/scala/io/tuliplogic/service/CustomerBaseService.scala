@@ -1,34 +1,50 @@
 package io.tuliplogic.service
 
-import io.tuliplogic.{User, UserId}
+import io.tuliplogic.{Customer, CustomerId}
 import sttp.client.asynchttpclient.zio.SttpClient
-import zio.{Has, Task, URLayer, ZIO, ZLayer}
+import sttp.model.StatusCode
+import zio.{IO, URLayer, ZIO, ZLayer}
 
 object CustomerBaseService {
 
-  case class Config(baseUrl: String, port: Int)
-  type Config = Has[Config]
+  case class Error(message: String, override val getCause: Throwable) extends Exception
 
   trait Service {
-    def getCustomer(userId: UserId): Task[Option[User]]
+    def getCustomer(customerId: CustomerId): IO[Error, Option[Customer]]
   }
 
-  val live: URLayer[Config, CustomerBaseService] =
-    ZLayer.fromServiceM { (config: Config) =>
+  def getCustomer(customerId: CustomerId): ZIO[CustomerBaseService, Error, Option[Customer]] =
+    ZIO.accessM(_.get.getCustomer(customerId))
+
+
+
+  val live: URLayer[SttpClient with Config, CustomerBaseService] =
+    ZLayer.fromServiceM[io.tuliplogic.Config, SttpClient, Nothing, Service] { config =>
       import sttp.client._
       import sttp.client.circe._
-      import io.circe.
+      import io.circe.generic.auto._
 
-      ZIO.fromFunction[SttpClient, Service] {
+      ZIO.fromFunction[SttpClient, Service] { sttpClient =>
         new Service {
-          override def getCustomer(userId: UserId): Task[Option[User]] =
-            SttpClient.send(
-              basicRequest
-                .get(uri"${config.baseUrl}:${config.port}/users/${userId.value}")
-            )
+          override def getCustomer(customerId: CustomerId): IO[Error, Option[Customer]] = {
+            val request = basicRequest
+              .get(uri"${config.baseUrl}:${config.port}/customers/${customerId.value}")
+              .response(asJson[Customer])
+
+            (
+              for {
+                resp <- SttpClient.send(request)
+                  .mapError(t => Error("Connection Error", t))
+                res <- (resp.code, resp.body) match {
+                  case (StatusCode.NotFound, _) => ZIO.none
+                  case (_, Right(user))         => ZIO.some(user)
+                  case (_, Left(e))             => ZIO.fail(Error("API error", e))
+                }
+              } yield res
+            ).provide(sttpClient)
+
+          }
         }
       }
-
-
     }
 }
