@@ -5,14 +5,14 @@ import sttp.client.asynchttpclient.zio.AsyncHttpClientZioBackend
 import zio.console.Console
 import zio.{App, ExitCode, URIO, ZIO, ZLayer, console}
 
-object Promotions extends App {
+object Campaign extends App {
 
   def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
     program.provideSomeLayer[Console](
       (ZLayer.succeed(Config("http://localhost", 8080)) ++ AsyncHttpClientZioBackend.layer()) >>> CustomerBaseService.live
     ).orDie.exitCode
 
-  val customerIds = List(
+  val customerIds: List[CustomerId] = List(
     CustomerId("123123"),
     CustomerId("456456"),
     CustomerId("789789"),

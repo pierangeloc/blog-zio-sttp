@@ -17,6 +17,8 @@ lazy val root = project
     scalaVersion := "2.13.1",
     libraryDependencies ++= Seq(
       cask,
-      zio
+      zio,
+      scalaTest % Test,
+      scalactic % Test
     ) ++ sttp ++ circe
   )

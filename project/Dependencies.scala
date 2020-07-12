@@ -15,7 +15,8 @@ object Dependencies {
   val catsEffectVersion = "2.0.0"
   val circeVersion      = "0.12.1"
 
-  lazy val scalaTest  = "org.scalatest" %% "scalatest"   % "3.0.5"
+  lazy val scalaTest  = "org.scalatest" %% "scalatest"   % "3.2.0"
+  lazy val scalactic  = "org.scalactic" %% "scalactic" % "3.2.0"
 
   lazy val cats       = "org.typelevel" %% "cats-core"   % catsVersion
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % catsEffectVersion

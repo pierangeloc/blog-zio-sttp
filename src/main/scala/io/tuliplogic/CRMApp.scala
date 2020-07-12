@@ -2,7 +2,7 @@ package io.tuliplogic
 
 import cask.MainRoutes
 
-object UserManagementApp extends MainRoutes {
+object CRMApp extends MainRoutes {
 
   lazy val users: Map[CustomerId, Customer] = Map(
     CustomerId("123123") -> Customer(CustomerId("123123"), Email("weierstrass@maths.com"), true),
