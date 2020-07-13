@@ -7,13 +7,13 @@ import org.scalatest.wordspec.AnyWordSpec
 import sttp.client.asynchttpclient.zio.{AsyncHttpClientZioBackend, SttpClient}
 import zio.{BootstrapRuntime, ULayer, ZLayer}
 
-class CustomerBaseServiceTest extends AnyWordSpec with Matchers {
+class CustomerDataServiceTest extends AnyWordSpec with Matchers {
   "CustomerBaseService live" should {
     "return Some(Customer) when customer found" in new TestScope {
 
       val res = unsafeRun(
-        CustomerBaseService.getCustomer(CustomerId("123123")).provideLayer(
-          (configLayer ++ okSttp  ) >>> CustomerBaseService.live
+        CustomerDataService.getCustomer(CustomerId("123123")).provideLayer(
+          (configLayer ++ okSttp  ) >>> CustomerDataService.live
         ).either
       )
 
@@ -23,8 +23,8 @@ class CustomerBaseServiceTest extends AnyWordSpec with Matchers {
 
     "return None when customer not found" in new TestScope {
       val res = unsafeRun(
-        CustomerBaseService.getCustomer(CustomerId("123122")).provideLayer(
-          (configLayer ++ notFoundSttp  ) >>> CustomerBaseService.live
+        CustomerDataService.getCustomer(CustomerId("123122")).provideLayer(
+          (configLayer ++ notFoundSttp  ) >>> CustomerDataService.live
         ).either
       )
 
@@ -34,8 +34,8 @@ class CustomerBaseServiceTest extends AnyWordSpec with Matchers {
 
     "return error when api call returns an error" in new TestScope {
       val res = unsafeRun(
-        CustomerBaseService.getCustomer(CustomerId("123123")).provideLayer(
-          (configLayer ++ errorSttp  ) >>> CustomerBaseService.live
+        CustomerDataService.getCustomer(CustomerId("123123")).provideLayer(
+          (configLayer ++ errorSttp  ) >>> CustomerDataService.live
         ).either
       )
 
@@ -62,9 +62,7 @@ class CustomerBaseServiceTest extends AnyWordSpec with Matchers {
 
     val notFoundSttp: ULayer[SttpClient] = ZLayer.succeed(
       AsyncHttpClientZioBackend.stub
-        .whenRequestMatches(req => {
-          println(req.uri.toString()); req.uri.toString == "http://localhost:8080/customers/123122"
-        })
+        .whenRequestMatches(req => req.uri.toString == "http://localhost:8080/customers/123122")
         .thenRespondNotFound()
     )
 
